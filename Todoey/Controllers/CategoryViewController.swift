@@ -7,13 +7,15 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    var categories = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-
+    //1.Initialize a new access point to realm database:
+    let realm = try! Realm()
+    //Results is an auto-updating container > we don't need to 'append' objects to it > it will monitor them automatically!
+    var categories: Results<Category>?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -37,31 +39,27 @@ class CategoryViewController: UITableViewController {
         //2.Grab the category that corresponds to the selected cell, so we need to know what is the selected cell?
          //the index path that identifies the current row that is selected
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categories[indexPath.row]
+            destinationVC.selectedCategory = categories?[indexPath.row]
         }
        
     }
 
-    
-
     //MARK: - Table view data source
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        //if categories return nil, then return 1
+        return categories?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        let newCategory = categories[indexPath.row]
-        cell.textLabel!.text = newCategory.name
-        
+         cell.textLabel!.text = categories?[indexPath.row].name ?? "No categories added"
+         
         return cell
         
     }
 
-    
-    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
@@ -73,10 +71,11 @@ class CategoryViewController: UITableViewController {
         }
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
             if let myCategory = textField.text {
-                let category = Category(context: self.context)
+                let category = Category()
                 category.name = myCategory
-                self.categories.append(category)
-                self.saveCategories()
+                 //Results is an auto-updating container > we don't need to 'append' objects to it > it will monitor them automatically!
+                //self.categories.append(category)
+                self.save(category: category)
                 
             }
         }
@@ -86,9 +85,12 @@ class CategoryViewController: UITableViewController {
     
     //MARK: - Data manipulation methods
     
-    func saveCategories() {
+    func save(category: Category) {
         do {
-           try context.save()
+            //commit current state to realm db
+            try realm.write {
+                realm.add(category)
+            }
         }catch {
             print("Error occured when saving the data \(error)")
         }
@@ -96,15 +98,8 @@ class CategoryViewController: UITableViewController {
     }
     
     func loadCategories() {
-        
-        //request
-        let request:NSFetchRequest<Category> = Category.fetchRequest()
-        //add the items back in the array
-        do {
-            try categories = context.fetch(request)
-        }catch {
-            print("Error occured when fetching the results")
-        }
+        //will fetch all the data of Category type from db
+        categories = realm.objects(Category.self)
         tableView.reloadData()
     }
     
