@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     
     //1.Create a new instance of realm:
     let realm = try! Realm()
@@ -28,9 +29,8 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        //here we want to load up all of the to-do items from our persistent container
-        //loadItems()
+        tableView.rowHeight = 80.0
+        tableView.separatorStyle = .none
             }
     
     //MARK: - tableView DataSource methods
@@ -40,10 +40,16 @@ class TodoListViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
-        
+        //get the cell that gets created inside our super tableView in SwipeTableViewController
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let currentItem = todoItems?[indexPath.row] {
             cell.textLabel?.text = currentItem.title
+            let myColor = UIColor(hexString: selectedCategory!.color)
+            if let color = myColor?.darken(byPercentage: CGFloat(indexPath.row)/CGFloat(todoItems!.count)){
+               cell.backgroundColor = color
+               cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
+            
             //ternary operator
             cell.accessoryType = currentItem.done ? .checkmark : .none
         }else {
@@ -122,6 +128,18 @@ class TodoListViewController: UITableViewController {
         todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
 
+    }
+    
+    override func updateModel(at index: IndexPath) {
+        if let item = todoItems?[index.row] {
+            do {
+                try realm.write {
+                    realm.delete(item)
+                }
+            }catch {
+                print("Error deleting an item, \(error)")
+            }
+        }
     }
 
 
