@@ -5,7 +5,7 @@ Application built as a part of the iOS Development Bootcamp Course.
 Todoey app allows to create new to-do lists with an individial color. Inside of each list you can add new items. You can also search your list. All the data is saved and persisted locally on the device.
 
 
-### Objecives learned:
+### Objectives learned:
 
 - persisting data using Realm database
 - querying data using Realm
