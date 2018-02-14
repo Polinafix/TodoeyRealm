@@ -12,6 +12,7 @@ import ChameleonFramework
 
 class TodoListViewController: SwipeTableViewController {
     
+    @IBOutlet weak var searchBar: UISearchBar!
     //1.Create a new instance of realm:
     let realm = try! Realm()
     
@@ -31,7 +32,36 @@ class TodoListViewController: SwipeTableViewController {
         
         tableView.rowHeight = 80.0
         tableView.separatorStyle = .none
-            }
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        guard let colorHex = selectedCategory?.color else  { fatalError()}
+        
+        title = selectedCategory!.name
+        updateNavBar(withHexCode: colorHex)
+        
+            
+       
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+    
+       updateNavBar(withHexCode: "1D9BF6")
+    }
+    
+    //MARK: - Nav Bar set up code methods
+    
+    func updateNavBar(withHexCode hexCode: String){
+        
+        guard let navBarColor = UIColor(hexString:hexCode) else { fatalError()}
+        navigationController?.navigationBar.barTintColor = navBarColor
+        navigationController?.navigationBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
+        searchBar.barTintColor = navBarColor
+        
+    }
     
     //MARK: - tableView DataSource methods
     

@@ -63,6 +63,7 @@ class CategoryViewController: SwipeTableViewController {
         //modify this cell further by changing itd text label
         cell.textLabel!.text = categories?[indexPath.row].name ?? "No categories added"
         cell.backgroundColor = UIColor(hexString: (categories?[indexPath.row].color) ?? "#CDCDCD")
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
          
         return cell
         
